@@ -38,3 +38,15 @@ Main endpoints:
 - `POST /reward`
 - `POST /config` (hot-swap strategy / tune params)
 
+## Docker Compose (Phase 3)
+Bring up API + Redis + Dashboard:
+
+```bash
+docker compose up --build
+```
+
+Services:
+- API: `http://localhost:8000` (`/health`)
+- Dashboard: `http://localhost:8501`
+- Redis: `localhost:6379`
+

@@ -1,0 +1,67 @@
+services:
+  redis-db:
+    image: redis:7-alpine
+    container_name: mab-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  bandit-api:
+    build:
+      context: .
+      dockerfile: bandit_api/Dockerfile
+    container_name: mab-api
+    environment:
+      ACTIVE_STRATEGY: ${ACTIVE_STRATEGY:-UCB1}
+      REDIS_URL: ${REDIS_URL:-redis://redis-db:6379/0}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    depends_on:
+      redis-db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=2).read()",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: dashboard/Dockerfile
+    container_name: mab-dashboard
+    environment:
+      BANDIT_API_URL: ${BANDIT_API_URL:-http://bandit-api:8000}
+      REDIS_URL: ${REDIS_URL:-redis://redis-db:6379/0}
+    depends_on:
+      redis-db:
+        condition: service_healthy
+      bandit-api:
+        condition: service_healthy
+    ports:
+      - "8501:8501"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8501/_stcore/health', timeout=2).read()",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 20s
