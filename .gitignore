@@ -1,0 +1,10 @@
+.*
+
+# Python artifacts
+__pycache__/
+*.pyc
+
+# Re-include dotfiles we want tracked
+!.gitignore
+!.env.example
+!.dockerignore
