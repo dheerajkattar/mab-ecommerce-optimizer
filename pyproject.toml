@@ -38,6 +38,9 @@ dev = [
   "types-requests>=2.31",
 ]
 
+[tool.hatch.build.targets.wheel]
+packages = ["bandit_core", "bandit_api"]
+
 [tool.ruff]
 line-length = 100
 target-version = "py39"
