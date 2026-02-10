@@ -1,0 +1,32 @@
+version = 0.1
+
+[default]
+[default.global.parameters]
+stack_name = "mab-bandit-stack"
+
+[default.build.parameters]
+cached = true
+parallel = true
+template_file = "template.yaml"
+
+[default.validate.parameters]
+template_file = "template.yaml"
+lint = true
+
+[default.deploy.parameters]
+capabilities = "CAPABILITY_IAM"
+confirm_changeset = true
+resolve_s3 = true
+resolve_image_repos = true
+stack_name = "mab-bandit-stack"
+s3_prefix = "mab-bandit"
+region = "us-east-1"
+template_file = "template.yaml"
+parameter_overrides = [
+  "AppName=mab-bandit",
+  "StageName=prod",
+  "ActiveStrategy=UCB1",
+  "LogLevel=INFO",
+  "VpcId=vpc-REPLACE_ME",
+  "PrivateSubnetIds=subnet-REPLACE_A,subnet-REPLACE_B",
+]

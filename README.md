@@ -50,3 +50,22 @@ Services:
 - Dashboard: `http://localhost:8501`
 - Redis: `localhost:6379`
 
+## AWS SAM (Phase 5)
+Serverless deployment files are in `infra/sam/`:
+- `template.yaml` - Lambda container + HTTP API + ElastiCache Redis + VPC SG wiring
+- `Dockerfile.lambda` - Lambda container image build
+- `samconfig.toml` - default SAM config (replace VPC/subnet placeholders)
+
+Typical flow:
+
+```bash
+cd infra/sam
+sam validate
+sam build
+sam deploy --guided
+```
+
+Required deployment parameters:
+- `VpcId`
+- `PrivateSubnetIds` (at least two private subnets)
+

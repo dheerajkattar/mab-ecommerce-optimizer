@@ -1,0 +1,143 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Multi-Armed Bandit API on Lambda container + ElastiCache Redis.
+
+Parameters:
+  AppName:
+    Type: String
+    Default: mab-bandit
+    Description: Prefix used for named resources.
+  StageName:
+    Type: String
+    Default: prod
+    AllowedPattern: "^[a-zA-Z0-9-]+$"
+    Description: API stage name.
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC for Lambda and ElastiCache.
+  PrivateSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: At least 2 private subnets for Lambda + Redis.
+  RedisNodeType:
+    Type: String
+    Default: cache.t3.micro
+    Description: ElastiCache node type.
+  ActiveStrategy:
+    Type: String
+    Default: UCB1
+    AllowedValues:
+      - UCB1
+      - THOMPSON
+      - EPSILON_GREEDY
+  LogLevel:
+    Type: String
+    Default: INFO
+    AllowedValues: [DEBUG, INFO, WARNING, ERROR]
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 1024
+    Tracing: Active
+    Environment:
+      Variables:
+        ACTIVE_STRATEGY: !Ref ActiveStrategy
+        LOG_LEVEL: !Ref LogLevel
+
+Resources:
+  BanditHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: !Ref StageName
+
+  LambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub "${AppName} Lambda security group"
+      VpcId: !Ref VpcId
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+  RedisSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub "${AppName} ElastiCache security group"
+      VpcId: !Ref VpcId
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+  RedisIngressFromLambda:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref RedisSecurityGroup
+      IpProtocol: tcp
+      FromPort: 6379
+      ToPort: 6379
+      SourceSecurityGroupId: !Ref LambdaSecurityGroup
+
+  RedisSubnetGroup:
+    Type: AWS::ElastiCache::SubnetGroup
+    Properties:
+      Description: !Sub "${AppName} redis subnet group"
+      SubnetIds: !Ref PrivateSubnetIds
+
+  RedisCluster:
+    Type: AWS::ElastiCache::CacheCluster
+    Properties:
+      ClusterName: !Sub "${AppName}-${StageName}-redis"
+      Engine: redis
+      CacheNodeType: !Ref RedisNodeType
+      NumCacheNodes: 1
+      VpcSecurityGroupIds:
+        - !Ref RedisSecurityGroup
+      CacheSubnetGroupName: !Ref RedisSubnetGroup
+
+  BanditApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      ImageConfig:
+        Command: ["bandit_api.lambda_handler.handler"]
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaVPCAccessExecutionRole
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref LambdaSecurityGroup
+        SubnetIds: !Ref PrivateSubnetIds
+      Environment:
+        Variables:
+          REDIS_URL: !Sub "redis://${RedisCluster.RedisEndpoint.Address}:${RedisCluster.RedisEndpoint.Port}/0"
+      Events:
+        RootRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BanditHttpApi
+            Path: /
+            Method: ANY
+        ProxyRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BanditHttpApi
+            Path: /{proxy+}
+            Method: ANY
+    Metadata:
+      DockerContext: ../../
+      Dockerfile: infra/sam/Dockerfile.lambda
+      DockerTag: v1
+
+Outputs:
+  ApiUrl:
+    Description: HTTP API endpoint URL.
+    Value: !Sub "https://${BanditHttpApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}"
+  ApiFunctionArn:
+    Description: Lambda function ARN.
+    Value: !GetAtt BanditApiFunction.Arn
+  RedisEndpointAddress:
+    Description: ElastiCache endpoint address.
+    Value: !GetAtt RedisCluster.RedisEndpoint.Address
+  RedisEndpointPort:
+    Description: ElastiCache endpoint port.
+    Value: !GetAtt RedisCluster.RedisEndpoint.Port

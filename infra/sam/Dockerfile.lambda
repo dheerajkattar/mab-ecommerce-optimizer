@@ -1,0 +1,15 @@
+FROM public.ecr.aws/lambda/python:3.11
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+WORKDIR ${LAMBDA_TASK_ROOT}
+
+COPY pyproject.toml README.md ./
+COPY bandit_core ./bandit_core
+COPY bandit_api ./bandit_api
+
+RUN pip install --no-cache-dir ".[api]"
+
+CMD ["bandit_api.lambda_handler.handler"]
