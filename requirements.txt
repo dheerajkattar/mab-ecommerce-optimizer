@@ -1,0 +1,5 @@
+streamlit>=1.30
+requests>=2.31
+plotly>=5.18
+redis[hiredis]>=5.0
+numpy>=1.23,<2
