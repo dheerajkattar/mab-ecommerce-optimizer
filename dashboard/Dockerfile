@@ -15,4 +15,4 @@ RUN pip install --no-cache-dir -e ".[dashboard,api]"
 
 EXPOSE 8501
 
-CMD ["streamlit", "run", "dashboard/app.py", "--server.address=0.0.0.0", "--server.port=8501"]
+CMD ["sh", "-c", "streamlit run dashboard/app.py --server.address=0.0.0.0 --server.port=${PORT:-8501}"]

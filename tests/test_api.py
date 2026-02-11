@@ -76,7 +76,10 @@ class TestBanditApi(unittest.TestCase):
             state_store=state_store,
             experiment_store=experiment_store,
         )
-        self.client = TestClient(app)
+        # Enter TestClient as a context manager so FastAPI lifespan events run.
+        self._client_cm = TestClient(app)
+        self.client = self._client_cm.__enter__()
+        self.addCleanup(self._client_cm.__exit__, None, None, None)
 
     def test_experiment_create_decision_reward_flow(self) -> None:
         create_resp = self.client.post(
@@ -150,6 +153,14 @@ class TestBanditApi(unittest.TestCase):
         current = self.experiment_store.get_experiment("exp_invalid_config")
         self.assertIsNotNone(current)
         self.assertIsNone(current["strategy"])
+
+    def test_demo_experiment_seeded_with_deterministic_strategy_seed(self) -> None:
+        # Trigger app startup/lifespan path via a request.
+        self.client.get("/health")
+        demo = self.experiment_store.get_experiment("demo-ecommerce-cta")
+        self.assertIsNotNone(demo)
+        self.assertEqual(demo["strategy"], "thompson")
+        self.assertEqual(demo["strategy_params"].get("seed"), 42)
 
 
 if __name__ == "__main__":

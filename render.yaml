@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: mab-api
+    runtime: docker
+    dockerfilePath: ./bandit_api/Dockerfile
+    dockerContext: .
+    plan: free
+    region: ohio
+    healthCheckPath: /health
+    envVars:
+      - key: REDIS_URL
+        sync: false
+      - key: ACTIVE_STRATEGY
+        value: THOMPSON
+      - key: LOG_LEVEL
+        value: INFO
+
+  - type: web
+    name: mab-dashboard
+    runtime: docker
+    dockerfilePath: ./dashboard/Dockerfile
+    dockerContext: .
+    plan: free
+    region: ohio
+    healthCheckPath: /_stcore/health
+    envVars:
+      - key: REDIS_URL
+        sync: false
+      - key: BANDIT_API_URL
+        sync: false
+      - key: LIVE_REFRESH_SECONDS
+        value: "5"
