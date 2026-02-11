@@ -94,7 +94,14 @@ def create_app(
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        _seed_demo_data(resolved_experiment_store, strategy_factory)
+        try:
+            _seed_demo_data(resolved_experiment_store, strategy_factory)
+        except Exception:
+            logger.warning(
+                "Could not seed demo data (Redis may be unreachable). "
+                "The API will still start — demo data will be missing until Redis connects.",
+                exc_info=True,
+            )
         yield
 
     app = FastAPI(
