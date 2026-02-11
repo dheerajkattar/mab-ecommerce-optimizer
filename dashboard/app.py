@@ -29,7 +29,26 @@ st.title("Multi-Armed Bandit Dashboard")
 st.caption("Live experimentation telemetry + algorithm sandbox.")
 
 redis_url = os.getenv("REDIS_URL", "redis://redis-db:6379/0")
+api_url = os.getenv("BANDIT_API_URL", os.getenv("API_URL", "http://localhost:8000"))
 default_refresh_seconds = float(os.getenv("LIVE_REFRESH_SECONDS", "3"))
+
+
+import requests
+
+
+def wake_up_api(base_url: str, timeout: int = 60) -> bool:
+    """Ping the API health endpoint in a loop until it responds (handles Render cold starts)."""
+    health = f"{base_url.rstrip('/')}/health"
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            r = requests.get(health, timeout=5)
+            if r.status_code == 200:
+                return True
+        except (requests.ConnectionError, requests.Timeout):
+            pass
+        time.sleep(2)
+    return False
 
 
 def _build_strategy(name: str, seed: int) -> BaseBanditStrategy:
@@ -54,6 +73,27 @@ def _extract_empirical_rate(state: Dict[str, float]) -> float:
         return alpha / denom if denom > 0 else 0.0
     return 0.0
 
+
+if api_url != "http://localhost:8000":
+    wake_state_key = f"api_wakeup_state::{api_url}"
+    if wake_state_key not in st.session_state:
+        st.session_state[wake_state_key] = {"checked": False, "ok": False}
+
+    wake_state = st.session_state[wake_state_key]
+    if not wake_state["checked"]:
+        with st.spinner("Waking up the API... (This takes ~45s on the free tier)"):
+            wake_state["ok"] = wake_up_api(api_url)
+            wake_state["checked"] = True
+
+    if not wake_state["ok"]:
+        st.error(
+            "Could not reach the API after 60 seconds. "
+            "Please refresh the page to try again, or check the API status on Render."
+        )
+        if st.button("Retry API wake-up"):
+            st.session_state[wake_state_key] = {"checked": False, "ok": False}
+            st.rerun()
+        st.stop()
 
 live_tab, sim_tab = st.tabs(["Live Stats", "Simulator Playground"])
 
