@@ -65,3 +65,18 @@ services:
       timeout: 3s
       retries: 10
       start_period: 20s
+
+  load-tester:
+    image: locustio/locust
+    container_name: mab-load-tester
+    volumes:
+      - ./tests:/mnt/locust
+    environment:
+      LOCUST_LOCUSTFILE: /mnt/locust/locustfile.py
+      LOCUST_HOST: http://bandit-api:8000
+    command: ["-f", "/mnt/locust/locustfile.py", "--host", "http://bandit-api:8000"]
+    depends_on:
+      bandit-api:
+        condition: service_healthy
+    ports:
+      - "8089:8089"

@@ -2,8 +2,15 @@
 from __future__ import annotations
 
 import os
+import sys
 import time
+from pathlib import Path
 from typing import Dict, List
+
+# Ensure project root is on path when run via streamlit run dashboard/app.py
+_project_root = Path(__file__).resolve().parent.parent
+if str(_project_root) not in sys.path:
+    sys.path.insert(0, str(_project_root))
 
 import plotly.graph_objects as go
 import streamlit as st
