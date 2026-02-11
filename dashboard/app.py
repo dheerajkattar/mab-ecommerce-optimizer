@@ -105,79 +105,84 @@ with live_tab:
         redis_client = DashboardRedisClient(redis_url=redis_url)
         redis_client.ping()
     except Exception as exc:  # pragma: no cover - runtime environment dependent
-        st.error(f"Unable to connect to Redis at `{redis_url}`: {exc}")
-        st.stop()
-
-    col1, col2 = st.columns([2, 1])
-    with col1:
-        experiment_ids = redis_client.list_experiment_ids()
-        if not experiment_ids:
-            st.info("No experiments found yet. Create one via the API first.")
-        selected_experiment = st.selectbox(
-            "Experiment",
-            options=experiment_ids,
-            index=0 if experiment_ids else None,
-            placeholder="No experiments available",
+        st.error(
+            f"Unable to connect to Redis: {exc.__class__.__name__}: {exc}. "
+            "Live stats are unavailable — check the REDIS_URL environment variable. "
+            "The Simulator Playground tab still works."
         )
-    with col2:
-        auto_refresh = st.toggle("Auto refresh", value=False)
-        refresh_seconds = st.number_input(
-            "Refresh (seconds)",
-            min_value=1.0,
-            max_value=30.0,
-            value=default_refresh_seconds,
-            step=1.0,
-        )
+        redis_client = None
 
-    if selected_experiment:
-        experiment = redis_client.get_experiment(selected_experiment)
-        if experiment is None:
-            st.warning("Selected experiment was not found in Redis.")
-        else:
-            strategy_name = experiment.get("strategy") or "(default from API)"
-            st.write(f"**Strategy:** `{strategy_name}`")
-            st.write(f"**Arms:** `{', '.join(experiment['arm_ids'])}`")
-
-            rows: List[Dict[str, float]] = []
-            for arm_id in experiment["arm_ids"]:
-                state = redis_client.get_arm_state(selected_experiment, arm_id)
-                pulls = state.get("count", 0.0)
-                successes = max(0.0, state.get("alpha", 1.0) - 1.0)
-                failures = max(0.0, state.get("beta", 1.0) - 1.0)
-                ts_pulls = successes + failures
-                effective_pulls = pulls if pulls > 0 else ts_pulls
-                rows.append(
-                    {
-                        "arm": arm_id,
-                        "pulls": effective_pulls,
-                        "empirical_rate": _extract_empirical_rate(state),
-                    }
-                )
-
-            st.dataframe(rows, use_container_width=True, hide_index=True)
-
-            fig = go.Figure()
-            fig.add_trace(
-                go.Bar(
-                    x=[r["arm"] for r in rows],
-                    y=[r["empirical_rate"] for r in rows],
-                    text=[f"{r['empirical_rate']:.3f}" for r in rows],
-                    textposition="auto",
-                    name="Empirical rate",
-                )
+    if redis_client is not None:
+        col1, col2 = st.columns([2, 1])
+        with col1:
+            experiment_ids = redis_client.list_experiment_ids()
+            if not experiment_ids:
+                st.info("No experiments found yet. Create one via the API first.")
+            selected_experiment = st.selectbox(
+                "Experiment",
+                options=experiment_ids,
+                index=0 if experiment_ids else None,
+                placeholder="No experiments available",
             )
-            fig.update_layout(
-                title="Arm empirical conversion rates",
-                xaxis_title="Arm",
-                yaxis_title="Conversion rate",
-                yaxis=dict(range=[0, 1]),
-                height=420,
+        with col2:
+            auto_refresh = st.toggle("Auto refresh", value=False)
+            refresh_seconds = st.number_input(
+                "Refresh (seconds)",
+                min_value=1.0,
+                max_value=30.0,
+                value=default_refresh_seconds,
+                step=1.0,
             )
-            st.plotly_chart(fig, use_container_width=True)
 
-    if auto_refresh:
-        time.sleep(refresh_seconds)
-        st.rerun()
+        if selected_experiment:
+            experiment = redis_client.get_experiment(selected_experiment)
+            if experiment is None:
+                st.warning("Selected experiment was not found in Redis.")
+            else:
+                strategy_name = experiment.get("strategy") or "(default from API)"
+                st.write(f"**Strategy:** `{strategy_name}`")
+                st.write(f"**Arms:** `{', '.join(experiment['arm_ids'])}`")
+
+                rows: List[Dict[str, float]] = []
+                for arm_id in experiment["arm_ids"]:
+                    state = redis_client.get_arm_state(selected_experiment, arm_id)
+                    pulls = state.get("count", 0.0)
+                    successes = max(0.0, state.get("alpha", 1.0) - 1.0)
+                    failures = max(0.0, state.get("beta", 1.0) - 1.0)
+                    ts_pulls = successes + failures
+                    effective_pulls = pulls if pulls > 0 else ts_pulls
+                    rows.append(
+                        {
+                            "arm": arm_id,
+                            "pulls": effective_pulls,
+                            "empirical_rate": _extract_empirical_rate(state),
+                        }
+                    )
+
+                st.dataframe(rows, use_container_width=True, hide_index=True)
+
+                fig = go.Figure()
+                fig.add_trace(
+                    go.Bar(
+                        x=[r["arm"] for r in rows],
+                        y=[r["empirical_rate"] for r in rows],
+                        text=[f"{r['empirical_rate']:.3f}" for r in rows],
+                        textposition="auto",
+                        name="Empirical rate",
+                    )
+                )
+                fig.update_layout(
+                    title="Arm empirical conversion rates",
+                    xaxis_title="Arm",
+                    yaxis_title="Conversion rate",
+                    yaxis=dict(range=[0, 1]),
+                    height=420,
+                )
+                st.plotly_chart(fig, use_container_width=True)
+
+        if auto_refresh:
+            time.sleep(refresh_seconds)
+            st.rerun()
 
 with sim_tab:
     st.subheader("Simulator Playground")
