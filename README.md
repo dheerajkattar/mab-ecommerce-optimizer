@@ -711,12 +711,6 @@ Contributions welcome! This is a production-ready framework with:
 
 ---
 
-## 📄 License
-
-[Add your license here]
-
----
-
 ## 🔗 Additional Resources
 
 - **Bandit Algorithms**: [Bandit Algorithms for Website Optimization (O'Reilly)](https://www.oreilly.com/library/view/bandit-algorithms-for/9781449341565/)
