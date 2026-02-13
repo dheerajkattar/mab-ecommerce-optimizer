@@ -538,32 +538,39 @@ streamlit run dashboard/app.py
 ### Strategy Parameters
 
 **Thompson Sampling:**
+Use this when you want strong default performance with minimal tuning.
+- `seed` (optional): Makes randomized arm selection reproducible across runs.
 ```json
 {
   "strategy": "thompson",
   "strategy_params": {
-    "seed": 42  // Optional: for reproducible experiments
+    "seed": 42  
   }
 }
 ```
 
 **UCB1:**
+Use this when you want deterministic confidence-bound exploration.
+- `seed` (optional): Ensures reproducible tie-breaking behavior.
 ```json
 {
   "strategy": "ucb1",
   "strategy_params": {
-    "seed": 42  // Optional: for reproducible experiments
+    "seed": 42  
   }
 }
 ```
 
 **Epsilon-Greedy:**
+Use this when you want simple, explicit control of exploration.
+- `epsilon` (optional, default `0.1`): Fraction of requests that explore randomly.
+- `seed` (optional): Makes random exploration reproducible.
 ```json
 {
   "strategy": "epsilon_greedy",
   "strategy_params": {
-    "epsilon": 0.1,  // Exploration rate (0-1), default 0.1 means 10% exploration
-    "seed": 42       // Optional: for reproducible experiments
+    "epsilon": 0.1,
+    "seed": 42
   }
 }
 ```
