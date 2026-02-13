@@ -8,3 +8,5 @@ __pycache__/
 !.gitignore
 !.env.example
 !.dockerignore
+
+DEPLOY_INSTRUCTIONS.md

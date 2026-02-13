@@ -11,6 +11,6 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
-    active_strategy: str = Field(default="UCB1", alias="ACTIVE_STRATEGY")
+    active_strategy: str = Field(default="THOMPSON", alias="ACTIVE_STRATEGY")
     redis_url: str = Field(default="redis://localhost:6379/0", alias="REDIS_URL")
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")
