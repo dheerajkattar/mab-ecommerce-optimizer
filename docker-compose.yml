@@ -17,7 +17,7 @@ services:
       dockerfile: bandit_api/Dockerfile
     container_name: mab-api
     environment:
-      ACTIVE_STRATEGY: ${ACTIVE_STRATEGY:-UCB1}
+      ACTIVE_STRATEGY: ${ACTIVE_STRATEGY:-THOMPSON}
       REDIS_URL: ${REDIS_URL:-redis://redis-db:6379/0}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
     depends_on:
