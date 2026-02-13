@@ -1,8 +1,9 @@
 """UCB1 (Upper Confidence Bound) strategy."""
+
 from __future__ import annotations
 
 import math
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 
@@ -39,7 +40,7 @@ class UCB1Strategy(BaseBanditStrategy):
 
     # -- arm state layout -----------------------------------------------------
 
-    def default_arm_state(self) -> Dict[str, float]:
+    def default_arm_state(self) -> dict[str, float]:
         return {"count": 0.0, "value_sum": 0.0}
 
     # -- core API -------------------------------------------------------------
@@ -47,26 +48,25 @@ class UCB1Strategy(BaseBanditStrategy):
     def select_arm(
         self,
         experiment_id: str,
-        arm_ids: List[str],
-        user_context: Optional[Dict[str, Any]] = None,
+        arm_ids: list[str],
+        user_context: dict[str, Any] | None = None,
     ) -> str:
         states = self.store.get_experiment_state(experiment_id, arm_ids)
 
         # Phase 1: play each arm at least once (in random order)
         unplayed = [
-            aid for aid in arm_ids
+            aid
+            for aid in arm_ids
             if states.get(aid, self.default_arm_state()).get("count", 0.0) == 0
         ]
         if unplayed:
             return str(self._rng.choice(unplayed))
 
         # Total pulls across all arms
-        total_pulls = sum(
-            states[aid].get("count", 0.0) for aid in arm_ids
-        )
+        total_pulls = sum(states[aid].get("count", 0.0) for aid in arm_ids)
         log_total = math.log(total_pulls) if total_pulls > 0 else 0.0
 
-        best_arm: Optional[str] = None
+        best_arm: str | None = None
         best_ucb = -math.inf
 
         for arm_id in arm_ids:

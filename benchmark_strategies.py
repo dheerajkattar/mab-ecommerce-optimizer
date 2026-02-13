@@ -7,10 +7,10 @@ Usage:
 
 Produces ``benchmark_regret.png`` in the current directory.
 """
+
 from __future__ import annotations
 
 import argparse
-from typing import Dict, List, Tuple
 
 import numpy as np
 
@@ -23,15 +23,15 @@ from bandit_core.strategies.ucb1 import UCB1Strategy
 
 # ---- default problem setup --------------------------------------------------
 
-DEFAULT_ARM_RATES: Dict[str, float] = {
-    "A": 0.10,   # 10 % conversion
-    "B": 0.13,   # 13 %
-    "C": 0.18,   # 18 % - the true best arm
-    "D": 0.05,   # 5 %
+DEFAULT_ARM_RATES: dict[str, float] = {
+    "A": 0.10,  # 10 % conversion
+    "B": 0.13,  # 13 %
+    "C": 0.18,  # 18 % - the true best arm
+    "D": 0.05,  # 5 %
 }
 
 
-def build_strategies(seed: int) -> List[Tuple[str, BaseBanditStrategy]]:
+def build_strategies(seed: int) -> list[tuple[str, BaseBanditStrategy]]:
     """Instantiate one of each strategy, each with its own store."""
     return [
         (
@@ -50,7 +50,7 @@ def build_strategies(seed: int) -> List[Tuple[str, BaseBanditStrategy]]:
 
 
 def _plot_regret_curves(
-    results: Dict[str, List[float]],
+    results: dict[str, list[float]],
     n_rounds: int,
     out_path: str,
 ) -> None:
@@ -58,8 +58,7 @@ def _plot_regret_curves(
         import matplotlib.pyplot as plt
     except ModuleNotFoundError as exc:
         raise ModuleNotFoundError(
-            "matplotlib is required to generate plots. "
-            "Install with: pip install -e '.[bench]'"
+            "matplotlib is required to generate plots. Install with: pip install -e '.[bench]'"
         ) from exc
 
     # ---- plot ----------------------------------------------------------------
@@ -96,7 +95,7 @@ def main() -> None:
 
     # We use the same seed for the environment across strategies so that
     # each strategy faces an *identical* reward sequence.
-    results: Dict[str, List[float]] = {}
+    results: dict[str, list[float]] = {}
     for label, strategy in strategies:
         env = BernoulliBanditEnv(DEFAULT_ARM_RATES, seed=seed)
         regrets, _rewards = run_simulation(

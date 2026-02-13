@@ -1,4 +1,5 @@
 """State store backends."""
+
 from bandit_core.state.base import BanditStateStore
 from bandit_core.state.memory import InMemoryStateStore
 

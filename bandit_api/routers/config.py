@@ -1,4 +1,5 @@
 """Configuration endpoints for per-experiment strategy tuning."""
+
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Request, status
@@ -40,4 +41,3 @@ def set_strategy_config(payload: ConfigRequest, request: Request) -> ConfigRespo
         strategy=strategy.name,
         strategy_params=updated["strategy_params"],
     )
-

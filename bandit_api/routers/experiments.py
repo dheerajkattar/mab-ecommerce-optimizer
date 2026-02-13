@@ -1,4 +1,5 @@
 """Experiment management endpoints."""
+
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Request, status
@@ -68,4 +69,3 @@ def add_arms(experiment_id: str, payload: AddArmsRequest, request: Request) -> E
     strategy = strategy_factory.build_for_experiment(experiment_id)
     strategy.initialize_experiment(experiment_id, updated["arm_ids"])
     return ExperimentResponse(**updated)
-

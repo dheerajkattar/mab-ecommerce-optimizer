@@ -1,8 +1,9 @@
 """Redis helpers for the Streamlit dashboard."""
+
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import redis
 
@@ -18,11 +19,11 @@ class DashboardRedisClient:
     def ping(self) -> bool:
         return bool(self._client.ping())
 
-    def list_experiment_ids(self) -> List[str]:
+    def list_experiment_ids(self) -> list[str]:
         raw = self._client.smembers(experiments_index_key())
         return sorted([v.decode("utf-8") for v in raw])
 
-    def get_experiment(self, experiment_id: str) -> Optional[Dict[str, Any]]:
+    def get_experiment(self, experiment_id: str) -> dict[str, Any] | None:
         raw = self._client.hgetall(experiment_meta_key(experiment_id))
         if not raw:
             return None
@@ -34,9 +35,8 @@ class DashboardRedisClient:
             "strategy_params": json.loads(decoded.get("strategy_params", "{}")),
         }
 
-    def get_arm_state(self, experiment_id: str, arm_id: str) -> Dict[str, float]:
+    def get_arm_state(self, experiment_id: str, arm_id: str) -> dict[str, float]:
         raw = self._client.hgetall(arm_state_key(experiment_id, arm_id))
         if not raw:
             return {}
         return {k.decode("utf-8"): float(v) for k, v in raw.items()}
-

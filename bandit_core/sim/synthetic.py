@@ -1,11 +1,9 @@
 """Synthetic Bernoulli environment for benchmarking bandit strategies."""
-from __future__ import annotations
 
-from typing import Dict, List, Optional, Tuple
+from __future__ import annotations
 
 import numpy as np
 
-from bandit_core.state.memory import InMemoryStateStore
 from bandit_core.strategies.base import BaseBanditStrategy
 
 
@@ -22,8 +20,8 @@ class BernoulliBanditEnv:
 
     def __init__(
         self,
-        arm_rates: Dict[str, float],
-        seed: Optional[int] = None,
+        arm_rates: dict[str, float],
+        seed: int | None = None,
     ) -> None:
         self.arm_rates = arm_rates
         self.arm_ids = list(arm_rates.keys())
@@ -44,7 +42,7 @@ def run_simulation(
     env: BernoulliBanditEnv,
     experiment_id: str,
     n_rounds: int,
-) -> Tuple[List[float], List[float]]:
+) -> tuple[list[float], list[float]]:
     """Run a strategy against a synthetic environment.
 
     Returns
@@ -58,8 +56,8 @@ def run_simulation(
 
     cumulative_regret = 0.0
     cumulative_reward = 0.0
-    regrets: List[float] = []
-    rewards: List[float] = []
+    regrets: list[float] = []
+    rewards: list[float] = []
 
     for _ in range(n_rounds):
         arm_id = strategy.select_arm(experiment_id, env.arm_ids)

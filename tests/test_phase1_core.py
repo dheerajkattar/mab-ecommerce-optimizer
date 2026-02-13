@@ -1,14 +1,15 @@
 """Phase 1 verification tests for core strategies and simulation."""
+
 from __future__ import annotations
 
 import unittest
 
-from benchmark_strategies import DEFAULT_ARM_RATES, build_strategies
 from bandit_core.sim.synthetic import BernoulliBanditEnv, run_simulation
 from bandit_core.state.memory import InMemoryStateStore
 from bandit_core.strategies.epsilon_greedy import EpsilonGreedyStrategy
 from bandit_core.strategies.thompson import ThompsonSamplingStrategy
 from bandit_core.strategies.ucb1 import UCB1Strategy
+from benchmark_strategies import DEFAULT_ARM_RATES, build_strategies
 
 
 class TestPhase1Core(unittest.TestCase):
@@ -72,7 +73,9 @@ class TestPhase1Core(unittest.TestCase):
 
     def test_ucb1_skips_non_positive_counts_and_keeps_evaluating(self) -> None:
         class CorruptCountStore(InMemoryStateStore):
-            def get_experiment_state(self, experiment_id: str, arm_ids: list[str]) -> dict[str, dict[str, float]]:
+            def get_experiment_state(
+                self, experiment_id: str, arm_ids: list[str]
+            ) -> dict[str, dict[str, float]]:
                 return {
                     # Negative count bypasses the "unplayed == 0" branch and
                     # would raise math-domain errors without defensive guards.
@@ -86,7 +89,9 @@ class TestPhase1Core(unittest.TestCase):
 
     def test_ucb1_falls_back_when_all_counts_invalid(self) -> None:
         class AllInvalidCountStore(InMemoryStateStore):
-            def get_experiment_state(self, experiment_id: str, arm_ids: list[str]) -> dict[str, dict[str, float]]:
+            def get_experiment_state(
+                self, experiment_id: str, arm_ids: list[str]
+            ) -> dict[str, dict[str, float]]:
                 return {
                     "A": {"count": -1.0, "value_sum": 0.0},
                     "B": {"count": -3.0, "value_sum": 1.0},

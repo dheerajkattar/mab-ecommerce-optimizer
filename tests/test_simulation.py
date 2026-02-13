@@ -1,4 +1,5 @@
 """Tests for the synthetic environment and simulation runner."""
+
 from __future__ import annotations
 
 import unittest

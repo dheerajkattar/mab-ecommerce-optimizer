@@ -1,7 +1,8 @@
 """Factory for selecting and constructing bandit strategy instances."""
+
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Protocol
+from typing import Any, Protocol
 
 from bandit_core.state.base import BanditStateStore
 from bandit_core.strategies.base import BaseBanditStrategy
@@ -13,8 +14,7 @@ from bandit_core.strategies.ucb1 import UCB1Strategy
 class ExperimentLookup(Protocol):
     """Minimal contract needed by StrategyFactory."""
 
-    def get_experiment(self, experiment_id: str) -> Optional[Dict[str, Any]]:
-        ...
+    def get_experiment(self, experiment_id: str) -> dict[str, Any] | None: ...
 
 
 class StrategyFactory:
@@ -50,15 +50,14 @@ class StrategyFactory:
         normalized = cls.normalize_strategy_name(name)
         if normalized not in cls.SUPPORTED_STRATEGIES:
             raise ValueError(
-                f"Unsupported strategy '{name}'. "
-                "Valid values: THOMPSON, EPSILON_GREEDY, UCB1."
+                f"Unsupported strategy '{name}'. Valid values: THOMPSON, EPSILON_GREEDY, UCB1."
             )
         return normalized
 
     def build_for_experiment(self, experiment_id: str) -> BaseBanditStrategy:
         config = self.experiment_store.get_experiment(experiment_id) or {}
         configured_strategy = config.get("strategy")
-        params: Dict[str, Any] = dict(config.get("strategy_params") or {})
+        params: dict[str, Any] = dict(config.get("strategy_params") or {})
 
         strategy_name = configured_strategy or self.default_strategy
         normalized = self.validate_strategy_name(strategy_name)
@@ -72,7 +71,5 @@ class StrategyFactory:
 
         # Kept as a safeguard if class mapping and SUPPORTED_STRATEGIES diverge.
         raise ValueError(
-            f"Unsupported strategy '{strategy_name}'. "
-            "Valid values: THOMPSON, EPSILON_GREEDY, UCB1."
+            f"Unsupported strategy '{strategy_name}'. Valid values: THOMPSON, EPSILON_GREEDY, UCB1."
         )
-

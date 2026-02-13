@@ -1,4 +1,5 @@
 """Tests for InMemoryStateStore – every method in the BanditStateStore contract."""
+
 from __future__ import annotations
 
 import unittest

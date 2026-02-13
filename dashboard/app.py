@@ -1,11 +1,11 @@
 """Interactive Streamlit dashboard for live stats + simulator playground."""
+
 from __future__ import annotations
 
 import os
 import sys
 import time
 from pathlib import Path
-from typing import Dict, List
 
 # Ensure project root is on path when run via streamlit run dashboard/app.py
 _project_root = Path(__file__).resolve().parent.parent
@@ -63,7 +63,7 @@ def _build_strategy(name: str, seed: int) -> BaseBanditStrategy:
     raise ValueError(f"Unsupported simulator strategy '{name}'")
 
 
-def _extract_empirical_rate(state: Dict[str, float]) -> float:
+def _extract_empirical_rate(state: dict[str, float]) -> float:
     if "count" in state and state.get("count", 0.0) > 0:
         return state.get("value_sum", 0.0) / state["count"]
     if "alpha" in state and "beta" in state:
@@ -143,7 +143,7 @@ with live_tab:
                 st.write(f"**Strategy:** `{strategy_name}`")
                 st.write(f"**Arms:** `{', '.join(experiment['arm_ids'])}`")
 
-                rows: List[Dict[str, float]] = []
+                rows: list[dict[str, float]] = []
                 for arm_id in experiment["arm_ids"]:
                     state = redis_client.get_arm_state(selected_experiment, arm_id)
                     pulls = state.get("count", 0.0)
@@ -190,9 +190,17 @@ with sim_tab:
 
     setup_col, control_col = st.columns([2, 1])
     with setup_col:
-        arm_a_rate = st.slider("True conversion: Arm A", min_value=0.0, max_value=1.0, value=0.12)
-        arm_b_rate = st.slider("True conversion: Arm B", min_value=0.0, max_value=1.0, value=0.18)
-        arm_c_rate = st.slider("True conversion: Arm C", min_value=0.0, max_value=1.0, value=0.09)
+        num_arms = st.number_input("Number of arms", min_value=2, max_value=10, value=3, step=1)
+        default_rates = [0.12, 0.18, 0.09, 0.15, 0.07, 0.20, 0.10, 0.14, 0.06, 0.11]
+        arm_rates = {}
+        for i in range(int(num_arms)):
+            label = chr(ord("A") + i)
+            arm_rates[label] = st.slider(
+                f"True conversion: Arm {label}",
+                min_value=0.0,
+                max_value=1.0,
+                value=default_rates[i],
+            )
     with control_col:
         strategy_label = st.selectbox(
             "Algorithm",
@@ -205,7 +213,6 @@ with sim_tab:
 
     run_clicked = st.button("Run simulation")
     if run_clicked:
-        arm_rates = {"A": arm_a_rate, "B": arm_b_rate, "C": arm_c_rate}
         best_rate = max(arm_rates.values())
         seed_int = int(seed)
 
@@ -217,8 +224,8 @@ with sim_tab:
 
         cumulative_regret = 0.0
         cumulative_reward = 0.0
-        regrets: List[float] = []
-        rewards: List[float] = []
+        regrets: list[float] = []
+        rewards: list[float] = []
         chosen_counts = {arm: 0 for arm in arm_ids}
 
         line_placeholder = st.empty()
@@ -241,8 +248,12 @@ with sim_tab:
                 rounds_axis = list(range(1, t + 1))
 
                 line_fig = go.Figure()
-                line_fig.add_trace(go.Scatter(x=rounds_axis, y=regrets, mode="lines", name="Cumulative regret"))
-                line_fig.add_trace(go.Scatter(x=rounds_axis, y=rewards, mode="lines", name="Cumulative reward"))
+                line_fig.add_trace(
+                    go.Scatter(x=rounds_axis, y=regrets, mode="lines", name="Cumulative regret")
+                )
+                line_fig.add_trace(
+                    go.Scatter(x=rounds_axis, y=rewards, mode="lines", name="Cumulative reward")
+                )
                 line_fig.update_layout(
                     title=f"Learning curves ({strategy_label})",
                     xaxis_title="Round",

@@ -1,8 +1,9 @@
 """Redis-backed stores for arm state and experiment metadata."""
+
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import redis
 
@@ -21,31 +22,27 @@ class RedisBanditStateStore(BanditStateStore):
     def __init__(self, redis_client: redis.Redis) -> None:
         self.redis = redis_client
 
-    def get_arm_state(self, experiment_id: str, arm_id: str) -> Dict[str, float]:
+    def get_arm_state(self, experiment_id: str, arm_id: str) -> dict[str, float]:
         raw = self.redis.hgetall(arm_state_key(experiment_id, arm_id))
         if not raw:
             return {}
         return {k.decode("utf-8"): float(v) for k, v in raw.items()}
 
     def get_experiment_state(
-        self, experiment_id: str, arm_ids: List[str]
-    ) -> Dict[str, Dict[str, float]]:
-        states: Dict[str, Dict[str, float]] = {}
+        self, experiment_id: str, arm_ids: list[str]
+    ) -> dict[str, dict[str, float]]:
+        states: dict[str, dict[str, float]] = {}
         for arm_id in arm_ids:
             states[arm_id] = self.get_arm_state(experiment_id, arm_id)
         return states
 
-    def set_arm_state(
-        self, experiment_id: str, arm_id: str, state: Dict[str, float]
-    ) -> None:
+    def set_arm_state(self, experiment_id: str, arm_id: str, state: dict[str, float]) -> None:
         key = arm_state_key(experiment_id, arm_id)
         self.redis.delete(key)
         if state:
             self.redis.hset(key, mapping={k: str(v) for k, v in state.items()})
 
-    def increment(
-        self, experiment_id: str, arm_id: str, key: str, amount: float = 1.0
-    ) -> float:
+    def increment(self, experiment_id: str, arm_id: str, key: str, amount: float = 1.0) -> float:
         val = self.redis.hincrbyfloat(arm_state_key(experiment_id, arm_id), key, amount)
         return float(val)
 
@@ -53,7 +50,7 @@ class RedisBanditStateStore(BanditStateStore):
         self,
         experiment_id: str,
         arm_id: str,
-        default_state: Dict[str, float],
+        default_state: dict[str, float],
     ) -> None:
         key = arm_state_key(experiment_id, arm_id)
         if self.redis.exists(key):
@@ -77,10 +74,10 @@ class RedisExperimentStore:
     def create_experiment(
         self,
         experiment_id: str,
-        arm_ids: List[str],
-        strategy: Optional[str] = None,
-        strategy_params: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        arm_ids: list[str],
+        strategy: str | None = None,
+        strategy_params: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         key = experiment_meta_key(experiment_id)
         meta = {
             "arm_ids": json.dumps(arm_ids),
@@ -91,7 +88,7 @@ class RedisExperimentStore:
         self.redis.sadd(experiments_index_key(), experiment_id)
         return self.get_experiment(experiment_id)  # type: ignore[return-value]
 
-    def get_experiment(self, experiment_id: str) -> Optional[Dict[str, Any]]:
+    def get_experiment(self, experiment_id: str) -> dict[str, Any] | None:
         raw = self.redis.hgetall(experiment_meta_key(experiment_id))
         if not raw:
             return None
@@ -104,7 +101,7 @@ class RedisExperimentStore:
             "strategy_params": json.loads(decoded.get("strategy_params", "{}")),
         }
 
-    def add_arms(self, experiment_id: str, arm_ids: List[str]) -> Optional[Dict[str, Any]]:
+    def add_arms(self, experiment_id: str, arm_ids: list[str]) -> dict[str, Any] | None:
         experiment = self.get_experiment(experiment_id)
         if experiment is None:
             return None
@@ -118,8 +115,8 @@ class RedisExperimentStore:
         self,
         experiment_id: str,
         strategy: str,
-        strategy_params: Optional[Dict[str, Any]] = None,
-    ) -> Optional[Dict[str, Any]]:
+        strategy_params: dict[str, Any] | None = None,
+    ) -> dict[str, Any] | None:
         key = experiment_meta_key(experiment_id)
         if not self.redis.exists(key):
             return None
@@ -131,4 +128,3 @@ class RedisExperimentStore:
             },
         )
         return self.get_experiment(experiment_id)
-

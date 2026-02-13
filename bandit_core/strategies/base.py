@@ -1,8 +1,9 @@
 """Abstract base class shared by every bandit algorithm."""
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from bandit_core.state.base import BanditStateStore
 
@@ -26,8 +27,8 @@ class BaseBanditStrategy(ABC):
     def select_arm(
         self,
         experiment_id: str,
-        arm_ids: List[str],
-        user_context: Optional[Dict[str, Any]] = None,
+        arm_ids: list[str],
+        user_context: dict[str, Any] | None = None,
     ) -> str:
         """Choose the arm to present to a user.
 
@@ -66,7 +67,7 @@ class BaseBanditStrategy(ABC):
         """
 
     @abstractmethod
-    def default_arm_state(self) -> Dict[str, float]:
+    def default_arm_state(self) -> dict[str, float]:
         """Return the initial state dict for a brand-new arm.
 
         This is used by ``store.ensure_arms()`` when an experiment is first
@@ -75,8 +76,6 @@ class BaseBanditStrategy(ABC):
 
     # ---- convenience --------------------------------------------------------
 
-    def initialize_experiment(
-        self, experiment_id: str, arm_ids: List[str]
-    ) -> None:
+    def initialize_experiment(self, experiment_id: str, arm_ids: list[str]) -> None:
         """Ensure all arms exist in the store with proper defaults."""
         self.store.ensure_arms(experiment_id, arm_ids, self.default_arm_state())
