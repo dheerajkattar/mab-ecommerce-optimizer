@@ -1,7 +1,8 @@
 """Epsilon-Greedy strategy with configurable exploration rate."""
+
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 
@@ -33,7 +34,7 @@ class EpsilonGreedyStrategy(BaseBanditStrategy):
 
     # -- arm state layout -----------------------------------------------------
 
-    def default_arm_state(self) -> Dict[str, float]:
+    def default_arm_state(self) -> dict[str, float]:
         return {"count": 0.0, "value_sum": 0.0}
 
     # -- core API -------------------------------------------------------------
@@ -41,8 +42,8 @@ class EpsilonGreedyStrategy(BaseBanditStrategy):
     def select_arm(
         self,
         experiment_id: str,
-        arm_ids: List[str],
-        user_context: Optional[Dict[str, Any]] = None,
+        arm_ids: list[str],
+        user_context: dict[str, Any] | None = None,
     ) -> str:
         # Explore
         if self._rng.random() < self.epsilon:
@@ -51,7 +52,7 @@ class EpsilonGreedyStrategy(BaseBanditStrategy):
         # Exploit – pick the arm with the highest empirical mean
         states = self.store.get_experiment_state(experiment_id, arm_ids)
 
-        best_arm: Optional[str] = None
+        best_arm: str | None = None
         best_mean = -1.0
 
         for arm_id in arm_ids:

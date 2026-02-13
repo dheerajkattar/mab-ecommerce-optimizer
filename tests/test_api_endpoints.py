@@ -1,8 +1,9 @@
 """Comprehensive API endpoint tests covering error paths and edge cases."""
+
 from __future__ import annotations
 
 import unittest
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 FASTAPI_AVAILABLE = True
 try:
@@ -19,15 +20,15 @@ class InMemoryExperimentStore:
     """Minimal in-memory experiment store for testing (no Redis)."""
 
     def __init__(self) -> None:
-        self._items: Dict[str, Dict[str, Any]] = {}
+        self._items: dict[str, dict[str, Any]] = {}
 
     def create_experiment(
         self,
         experiment_id: str,
-        arm_ids: List[str],
-        strategy: Optional[str] = None,
-        strategy_params: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        arm_ids: list[str],
+        strategy: str | None = None,
+        strategy_params: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         self._items[experiment_id] = {
             "experiment_id": experiment_id,
             "arm_ids": list(arm_ids),
@@ -36,11 +37,11 @@ class InMemoryExperimentStore:
         }
         return dict(self._items[experiment_id])
 
-    def get_experiment(self, experiment_id: str) -> Optional[Dict[str, Any]]:
+    def get_experiment(self, experiment_id: str) -> dict[str, Any] | None:
         item = self._items.get(experiment_id)
         return dict(item) if item else None
 
-    def add_arms(self, experiment_id: str, arm_ids: List[str]) -> Optional[Dict[str, Any]]:
+    def add_arms(self, experiment_id: str, arm_ids: list[str]) -> dict[str, Any] | None:
         item = self._items.get(experiment_id)
         if item is None:
             return None
@@ -52,8 +53,8 @@ class InMemoryExperimentStore:
         self,
         experiment_id: str,
         strategy: str,
-        strategy_params: Optional[Dict[str, Any]] = None,
-    ) -> Optional[Dict[str, Any]]:
+        strategy_params: dict[str, Any] | None = None,
+    ) -> dict[str, Any] | None:
         item = self._items.get(experiment_id)
         if item is None:
             return None

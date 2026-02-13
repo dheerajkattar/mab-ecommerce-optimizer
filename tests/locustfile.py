@@ -3,8 +3,10 @@
 # Web UI (default):  docker compose run --rm load-tester
 #                    Then open http://localhost:8089
 #
-# Headless run (copy this single line; image entrypoint is already locust):
-#   docker compose run --rm load-tester -f /mnt/locust/locustfile.py --host http://bandit-api:8000 --headless -u 100 -r 10 -t 60s --csv /mnt/locust/results
+# Headless run (image entrypoint is already locust):
+#   docker compose run --rm load-tester \
+#     -f /mnt/locust/locustfile.py --host http://bandit-api:8000 \
+#     --headless -u 100 -r 10 -t 60s --csv /mnt/locust/results
 
 import random
 

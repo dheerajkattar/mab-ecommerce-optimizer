@@ -1,4 +1,5 @@
 """Application settings loaded from environment variables."""
+
 from __future__ import annotations
 
 from pydantic import Field
@@ -13,4 +14,3 @@ class Settings(BaseSettings):
     active_strategy: str = Field(default="UCB1", alias="ACTIVE_STRATEGY")
     redis_url: str = Field(default="redis://localhost:6379/0", alias="REDIS_URL")
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")
-

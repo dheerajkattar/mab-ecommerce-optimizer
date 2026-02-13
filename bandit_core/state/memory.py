@@ -1,8 +1,8 @@
 """Fast, dict-backed state store for local benchmarking and tests."""
+
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Dict, List
 
 from bandit_core.state.base import BanditStateStore
 
@@ -17,29 +17,25 @@ class InMemoryStateStore(BanditStateStore):
 
     def __init__(self) -> None:
         # {experiment_id: {arm_id: {key: float}}}
-        self._data: Dict[str, Dict[str, Dict[str, float]]] = defaultdict(dict)
+        self._data: dict[str, dict[str, dict[str, float]]] = defaultdict(dict)
 
     # ---- read ---------------------------------------------------------------
 
-    def get_arm_state(self, experiment_id: str, arm_id: str) -> Dict[str, float]:
+    def get_arm_state(self, experiment_id: str, arm_id: str) -> dict[str, float]:
         return dict(self._data[experiment_id].get(arm_id, {}))
 
     def get_experiment_state(
-        self, experiment_id: str, arm_ids: List[str]
-    ) -> Dict[str, Dict[str, float]]:
+        self, experiment_id: str, arm_ids: list[str]
+    ) -> dict[str, dict[str, float]]:
         exp = self._data[experiment_id]
         return {aid: dict(exp.get(aid, {})) for aid in arm_ids}
 
     # ---- write --------------------------------------------------------------
 
-    def set_arm_state(
-        self, experiment_id: str, arm_id: str, state: Dict[str, float]
-    ) -> None:
+    def set_arm_state(self, experiment_id: str, arm_id: str, state: dict[str, float]) -> None:
         self._data[experiment_id][arm_id] = dict(state)
 
-    def increment(
-        self, experiment_id: str, arm_id: str, key: str, amount: float = 1.0
-    ) -> float:
+    def increment(self, experiment_id: str, arm_id: str, key: str, amount: float = 1.0) -> float:
         arm = self._data[experiment_id].setdefault(arm_id, {})
         arm[key] = arm.get(key, 0.0) + amount
         return arm[key]
@@ -50,7 +46,7 @@ class InMemoryStateStore(BanditStateStore):
         self,
         experiment_id: str,
         arm_id: str,
-        default_state: Dict[str, float],
+        default_state: dict[str, float],
     ) -> None:
         if arm_id not in self._data[experiment_id]:
             self._data[experiment_id][arm_id] = dict(default_state)

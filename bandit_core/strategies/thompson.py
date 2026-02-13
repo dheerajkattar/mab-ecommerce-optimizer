@@ -1,7 +1,8 @@
 """Thompson Sampling for Bernoulli (Beta-distributed) rewards."""
+
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 
@@ -25,7 +26,7 @@ class ThompsonSamplingStrategy(BaseBanditStrategy):
 
     # -- arm state layout -----------------------------------------------------
 
-    def default_arm_state(self) -> Dict[str, float]:
+    def default_arm_state(self) -> dict[str, float]:
         return {"alpha": 1.0, "beta": 1.0}
 
     # -- core API -------------------------------------------------------------
@@ -33,12 +34,12 @@ class ThompsonSamplingStrategy(BaseBanditStrategy):
     def select_arm(
         self,
         experiment_id: str,
-        arm_ids: List[str],
-        user_context: Optional[Dict[str, Any]] = None,
+        arm_ids: list[str],
+        user_context: dict[str, Any] | None = None,
     ) -> str:
         states = self.store.get_experiment_state(experiment_id, arm_ids)
 
-        best_arm: Optional[str] = None
+        best_arm: str | None = None
         best_sample = -1.0
 
         for arm_id in arm_ids:

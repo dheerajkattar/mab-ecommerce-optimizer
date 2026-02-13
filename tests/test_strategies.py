@@ -1,4 +1,5 @@
 """Targeted tests for strategy edge-cases not covered by test_phase1_core."""
+
 from __future__ import annotations
 
 import unittest
@@ -8,8 +9,8 @@ from bandit_core.strategies.epsilon_greedy import EpsilonGreedyStrategy
 from bandit_core.strategies.thompson import ThompsonSamplingStrategy
 from bandit_core.strategies.ucb1 import UCB1Strategy
 
-
 # ---- Thompson Sampling ------------------------------------------------------
+
 
 class TestThompsonSampling(unittest.TestCase):
     def test_select_arm_returns_valid_arm(self) -> None:
@@ -58,6 +59,7 @@ class TestThompsonSampling(unittest.TestCase):
 
 # ---- Epsilon-Greedy ----------------------------------------------------------
 
+
 class TestEpsilonGreedy(unittest.TestCase):
     def test_epsilon_one_always_explores(self) -> None:
         store = InMemoryStateStore()
@@ -103,6 +105,7 @@ class TestEpsilonGreedy(unittest.TestCase):
 
 
 # ---- UCB1 --------------------------------------------------------------------
+
 
 class TestUCB1(unittest.TestCase):
     def test_exploitation_prefers_high_mean_arm(self) -> None:

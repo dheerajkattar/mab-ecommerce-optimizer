@@ -1,4 +1,5 @@
 """Redis key naming helpers."""
+
 from __future__ import annotations
 
 
@@ -16,4 +17,3 @@ def arm_state_key(experiment_id: str, arm_id: str) -> str:
 
 def experiment_arm_pattern(experiment_id: str) -> str:
     return f"bandit:experiment:{experiment_id}:arm:*"
-

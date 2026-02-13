@@ -1,8 +1,9 @@
 """Tests for StrategyFactory behavior and hot-swap compatibility."""
+
 from __future__ import annotations
 
 import unittest
-from typing import Any, Dict, Optional
+from typing import Any
 
 from bandit_api.strategies.factory import StrategyFactory
 from bandit_core.state.memory import InMemoryStateStore
@@ -10,9 +11,9 @@ from bandit_core.state.memory import InMemoryStateStore
 
 class FakeExperimentStore:
     def __init__(self) -> None:
-        self.data: Dict[str, Dict[str, Any]] = {}
+        self.data: dict[str, dict[str, Any]] = {}
 
-    def get_experiment(self, experiment_id: str) -> Optional[Dict[str, Any]]:
+    def get_experiment(self, experiment_id: str) -> dict[str, Any] | None:
         return self.data.get(experiment_id)
 
     def set_experiment(
@@ -20,8 +21,8 @@ class FakeExperimentStore:
         experiment_id: str,
         *,
         arm_ids: Any,
-        strategy: Optional[str],
-        strategy_params: Optional[Dict[str, Any]] = None,
+        strategy: str | None,
+        strategy_params: dict[str, Any] | None = None,
     ) -> None:
         self.data[experiment_id] = {
             "experiment_id": experiment_id,
@@ -48,7 +49,9 @@ class TestStrategyFactory(unittest.TestCase):
     def test_thompson_normalizes_to_consistent_strategy_name(self) -> None:
         store = InMemoryStateStore()
         exp_store = FakeExperimentStore()
-        exp_store.set_experiment("exp_ts", arm_ids=["A", "B"], strategy="THOMPSON", strategy_params={})
+        exp_store.set_experiment(
+            "exp_ts", arm_ids=["A", "B"], strategy="THOMPSON", strategy_params={}
+        )
 
         factory = StrategyFactory(
             state_store=store,
@@ -106,4 +109,3 @@ class TestStrategyFactory(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

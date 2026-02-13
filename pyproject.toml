@@ -7,7 +7,7 @@ name = "multi-armed-bandit-framework"
 version = "0.1.0"
 description = "Production-ready, containerized Multi-Armed Bandit experimentation platform (FastAPI + Redis + Streamlit)."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [{ name = "Your Name" }]
 dependencies = [
@@ -43,13 +43,16 @@ packages = ["bandit_core", "bandit_api"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py39"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
 
+[tool.ruff.lint.per-file-ignores]
+"dashboard/app.py" = ["E402"]
+
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false

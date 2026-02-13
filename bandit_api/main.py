@@ -1,10 +1,12 @@
 """FastAPI entrypoint for the Multi-Armed Bandit service."""
+
 from __future__ import annotations
 
 import logging
 import random
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import Any, AsyncIterator, Dict, Optional
+from typing import Any
 
 from fastapi import FastAPI, HTTPException, Query, Request, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -64,9 +66,9 @@ def _seed_demo_data(
 
 def create_app(
     *,
-    settings: Optional[Settings] = None,
-    state_store: Optional[BanditStateStore] = None,
-    experiment_store: Optional[Any] = None,
+    settings: Settings | None = None,
+    state_store: BanditStateStore | None = None,
+    experiment_store: Any | None = None,
 ) -> FastAPI:
     """Create and configure the FastAPI app.
 
@@ -127,7 +129,7 @@ def create_app(
     app.include_router(config_router.router)
 
     @app.get("/health")
-    def health() -> Dict[str, str]:
+    def health() -> dict[str, str]:
         return {"status": "ok"}
 
     @app.get("/decision", response_model=DecisionResponse)
@@ -187,4 +189,3 @@ def create_app(
 
 
 app = create_app()
-
