@@ -499,7 +499,7 @@ Create a `.env` file (see `.env.example`):
 
 ```bash
 # Strategy configuration
-ACTIVE_STRATEGY=UCB1              # Default strategy (UCB1, THOMPSON, EPSILON_GREEDY)
+ACTIVE_STRATEGY=THOMPSON          # Default strategy (THOMPSON, UCB1, EPSILON_GREEDY)
 LOG_LEVEL=INFO
 
 # Redis connection
